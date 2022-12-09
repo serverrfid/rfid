@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge;chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Login</title>
+
+  <%- include ('partials/head.html'); -%>
+</head>
+
+<body class="pantalla-centrada">
+
+  <div class="container" style="height: 100%;">
+    <div class="row" style="height: 100%;">
+      <div class="col-sm-9 col-md-7 col-lg-5 mx-auto my-auto">
+        <div class="card card-signin">
+          <div class="card-body">
+
+            <div class="text-center">
+              <img src="/img/logo.png" height="100px" width="250px">
+            </div>
+
+            <H2 class="text-center mt-4 mb-2">Iniciar sesión</H2>
+
+            <div id="spinner" class="mb-3" style="display: none;">
+              <div class="d-flex justify-content-center">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="sr-only">Loading...</span>
+                </div>
+              </div>
+            </div>
+
+            <form class="form-signin mt-4">
+              <div class="form-label-group">
+                <input type="password" id="input-clave" class="form-control" placeholder="" required>
+                <label for="input-clave">Contraseña</label>
+              </div>
+
+              <button id="btn-login" class="btn btn-lg btn-danger btn-block text-uppercase mt-4" type="button">Iniciar
+                sesión</button>
+              <hr class="my-4">
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%- include ('partials/footer.html'); -%>
+
+    <script>
+
+      $(document).ready(function () {
+
+        $("#btn-login").click(function () {
+          var clave = document.getElementById("input-clave").value;
+
+          document.getElementById("spinner").style.display = "block";
+
+          $.post("/login-usuario", {
+            username: "1234",
+            password: clave
+          }, function (res) {
+            console.log(res)
+            respuesta = res;
+            if (respuesta == "cierto")
+              window.location.href = "/panel";
+            if (respuesta == "fallo")
+              $.alert('' +
+                '<label>ID o CLAVE incorrecto</label>' +
+                '<div class="text-center">' +
+                '<i class="fas fa-times fa-4x"></i>' +
+                '</div>');
+          }).done(function () {
+            document.getElementById("spinner").style.display = "none";
+          });
+        });
+
+      });
+    </script>
+
+    <script>
+      $(document).ready(function () {
+        var height = $(window).height();
+        $('.pantalla-centrada').height(height);
+      });
+
+      // Para detectar cambio de pantalla
+      $(window).resize(function () {
+        var height = $(window).height();
+        $('.pantalla-centrada').height(height);
+      });
+    </script>
+
+</body>
+
+</html>

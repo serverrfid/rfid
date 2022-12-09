@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge;chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Panel</title>
+
+  <%- include ('partials/head.html'); -%>
+
+    <script src="/socket.io/socket.io.js" charset="utf-8"></script>
+    <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+    <link href="https://unpkg.com/gijgo@1.9.13/css/gijgo.min.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body class="pagina-panel pt-2">
+
+  <div class="etiqueta mx-3 mt-2">
+    <div class="row">
+      <div class="col-7 col-sm-7 col-md-6 col-lg-8">
+        <h2 class="mx-1 mx-md-3 mx-sm-3 mx-lg-3 pt-2 pb-1 text-white">
+          <span class="fas fa-user"></span>
+          <spam class="mx-3">Panel</spam>
+          <spam id="html_ultima_actualizacion" class="mt-2" style="font-size: 45%;"></spam>
+        </h2>
+      </div>
+      <div class="col-5 col-sm-5 col-md-6 col-lg-4 my-auto ">
+        <div class="d-flex justify-content-end py-auto pr-3">
+          <button id="btn-cerrar-sesion" type="button" class="btn btn-danger px-3"
+            style="border-radius: 5rem;  transition: all 0.2s;">
+            <span class="iconify mr-1" data-icon="codicon:sign-out" style="font-size: 140%;"></span> Salir</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mx-3 mt-3">
+    <div class="row m-0 mx-1 mx-sm-3 mx-md-3 mx-lg-3">
+      <div class="col-10 col-sm-8 col-md-7 col-lg-4 mb-2 mb-lg-0 ml-0 ml-sm-3 ml-md-3 ml-lg-3">
+        <input type="text" id="buscador" onkeyup="Buscador()" placeholder="Buscar..."
+          class="buscador pl-5 pr-3 pt-1 pb-1">
+      </div>
+      <div class="col-10 col-sm-8 col-md-7 col-lg-4 ml-0 ml-sm-3 ml-md-3 ml-lg-3">
+        <div class="input-group">
+          <select class="custom-select py-1" id="input-filtro" style="height: 34px !important;">
+            <option value="2" selected>Filtrar por Dispositivo</option>
+            <option value="3">Filtrar por Etiqueta</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mx-3 mt-2 mb-0">
+    <div class="row">
+      <div class="col-12 col-sm-12 col-md-5 col-lg-3 ml-3 ml-sm-5 ml-md-5 ml-lg-5 mr-lg-3">
+        <h6 class="pt-2" style="color: rgb(255, 255, 255, 1);">Desde:</h6>
+        <input id="datepicker-a" class="datepicker-style" width="276" />
+      </div>
+      <div class="col-12 col-sm-12 col-md-5 col-lg-3 ml-3 ml-sm-5 ml-md-3 ml-lg-3">
+        <h6 class="pt-2" style="color: rgb(255, 255, 255, 1);">hasta:</h6>
+        <input id="datepicker-b" class="datepicker-style" width="276" />
+      </div>
+
+      <div class="col-12 col-sm-12 col-md-12 col-lg-12 mb-2 mt-3">
+        <h6 id="html-nota" class="px-lg-4 px-md-4 px-sm-4 px-0 mx-4"
+          style="display: none; font-size: 90%; color: aliceblue;">
+          Consultando...</h6>
+        <div class="table-responsive mb-2 px-sm-5 px-4">
+          <table class="table table-bordered table-dark mt-1" id="table">
+            <thead>
+              <tr>
+                <th scope="col" style="display:none"></th>
+                <th scope="col" style="text-align: center;">Fecha <span class="iconify"
+                    style="color: rgba(255, 255, 255,0.9);" data-icon="akar-icons:arrow-down"></span> </th>
+                <th scope="col" style="text-align: center;"><span class="iconify mr-2"
+                    style="color: rgba(255, 255, 255,0.8);" data-icon="carbon:user-filled"></span>Dispositivo</th>
+                <th scope="col" style="text-align: center;"><span class="iconify mr-2"
+                    style="color: rgba(255, 255, 255,0.8);" data-icon="carbon:user-filled"></span>Etiqueta</th>
+                <th scope="col" style="text-align: center;"></th>
+              </tr>
+            </thead>
+
+            <tbody id="tabla">
+            </tbody>
+          </table>
+        </div>
+
+        <div class="text-center mb-5 pb-3" style="width: 100%; margin-top: -30px;">
+          <ul class="pagination pager justify-content-center" id="myPager"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%- include ('partials/footer.html'); -%>
+
+    <!--Datepicker-->
+    <script src="https://unpkg.com/gijgo@1.9.13/js/gijgo.min.js" type="text/javascript"></script>
+
+    <script>
+      // Funcion cantidad elementos visibles en tabla
+      function MostrarCantidad() {
+        // Detectar los elementos que estan visibles
+        var cantidad = 0;
+        table = document.getElementById("tabla");
+        tr = table.getElementsByTagName("tr");
+        for (i = 0; i < tr.length; i++) {
+          var td = tr[i].getElementsByTagName("td");
+          if (tr[i].style.display != "none") {
+            cantidad = cantidad + 1;
+          }
+        }
+        console.log("Cantidad de historial", cantidad)
+        if (cantidad == 1)
+          document.getElementById("html-nota").innerHTML = cantidad + " producto registrado <i class='far fa-check-circle text-success'></i>";
+        else if (cantidad > 1)
+          document.getElementById("html-nota").innerHTML = cantidad + " productos registrados <i class='far fa-check-circle text-success'></i>";
+        else if (cantidad == 0)
+          document.getElementById("html-nota").innerHTML = "Sin datos" + '<span class="fas fa-exclamation ml-2" style="color: rgb(182, 21, 21) !important;"></span>';
+      }
+
+      window.estados_tabla = [];
+      function Buscador() {
+        var input = document.getElementById("buscador").value;
+
+        var filter, table, tr, td, i, txtValue;
+        filter = input.toUpperCase();
+
+        table = document.getElementById("tabla");
+        tr = table.getElementsByTagName("tr");
+
+        var filtro = parseInt(document.getElementById("input-filtro").value);
+        console.log(filtro);
+
+        for (i = 0; i < tr.length; i++) {
+          td = tr[i].getElementsByTagName("td")[filtro];
+
+          if (td) {
+            txtValue = td.textContent || td.innerText;
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+              tr[i].style.display = "";
+              window.estados_tabla[i] = 1;
+            } else {
+              tr[i].style.display = "none";
+              window.estados_tabla[i] = 0;
+            }
+          }
+        }
+        MostrarCantidad();
+        table = document.getElementById("tabla");
+        tr = table.getElementsByTagName("tr");
+        $(".page_link").eq(0).trigger("click");
+      }
+
+      function Enviar_Datos_Tabla(Fecha_Inicio, Fecha_Final) {
+        document.getElementById("html-nota").style.display = "block";
+        document.getElementById("html-nota").innerHTML = "Consultando...";
+        var Table = document.getElementById("tabla")
+        Table.innerHTML = "";
+        socket.emit('Consultar-Tabla', {
+          Fecha_Inicio, Fecha_Final
+        });
+      }
+
+      // Configuracion inicial del selector de Fecha
+      var AnoActual = new Date().getFullYear()
+      var MesActual = new Date().getMonth()
+      var DiaActual = new Date().getDate()
+      var HoraActual = new Date().getHours()
+      var MinutoActual = new Date().getMinutes()
+      var SegundoActual = new Date().getSeconds()
+
+      // Fecha para base de datos
+      window.fecha_inicio = new Date(AnoActual, (MesActual - 1), DiaActual)
+      window.fecha_final = new Date();
+
+      // Fecha para inicializar los DatePickers
+      var Aux_Fecha_Inicio, Aux_Fecha_Final;
+      if (MesActual == 0)
+        Aux_Fecha_Inicio = DiaActual + "/" + 12 + "/" + (AnoActual - 1)
+      else
+        Aux_Fecha_Inicio = DiaActual + "/" + MesActual + "/" + AnoActual
+      var Aux_Fecha_Final = DiaActual + "/" + (MesActual + 1) + "/" + AnoActual
+
+      // Datepicker
+      $("#datepicker-a").datepicker({
+        uiLibrary: 'bootstrap4',
+        format: 'dd/mm/yyyy',
+        footer: true,
+        modal: true,
+        icons: {
+          rightIcon: '<i style="color: rgb(255, 255, 255);" class="far fa-calendar-alt"></i>'
+        },
+        value: Aux_Fecha_Inicio,
+        maxDate: function () {
+          return $("#datepicker-b").val()
+        },
+        change: function (e) {
+          var Fecha = $("#datepicker-a").val()
+          var aux = Fecha.split("/")
+          var ano = aux[2]
+          var mes = aux[1] - 1
+          var dia = aux[0]
+          window.fecha_inicio = new Date(ano, mes, dia)
+          Enviar_Datos_Tabla(window.fecha_inicio, window.fecha_final)
+        }
+      });
+      $("#datepicker-b").datepicker({
+        uiLibrary: 'bootstrap4',
+        format: 'dd/mm/yyyy',
+        footer: true,
+        modal: true,
+        icons: {
+          rightIcon: '<i style="color: rgb(255, 255, 255);" class="far fa-calendar-alt"></i>'
+        },
+        value: Aux_Fecha_Final,
+        maxDate: Aux_Fecha_Final,
+        minDate: function () {
+          return $("#datepicker-a").val()
+        },
+        change: function (e) {
+          var Fecha = $("#datepicker-b").val()
+          var aux = Fecha.split("/")
+          var ano = aux[2]
+          var mes = aux[1] - 1
+          var dia = aux[0]
+          window.fecha_final = new Date(ano, mes, dia, 23, 59, 59)
+          Enviar_Datos_Tabla(window.fecha_inicio, window.fecha_final)
+        }
+      });
+
+      // Crear cliente socket
+      const socket = io({ autoConnect: true });
+      // Conexion socket con el servidor
+      window.estado = 0;
+      socket.on('connect', () => {
+        if (window.estado == 0) {
+          window.estado = 1;
+          document.getElementById("html-nota").style.display = "block";
+          document.getElementById("html-nota").innerHTML = "Consultando...";
+          socket.emit('WebApp', {
+            Fecha_Inicio: window.fecha_inicio,
+            Fecha_Final: window.fecha_final
+          });
+        }
+      });
+
+      socket.on('Historial', function (data) {
+        if (data) {
+          console.log("Historial", data)
+          var cant = parseInt(data.id.length);
+          for (i = 0; i < cant; i++) {
+            var fila = "<tr>" +
+              "<td style='display: none;'>" + data.id[i] + "</td>" +
+              "<td style='text-align: center;'>" + data.fecha[i] + "</td>" +
+              "<td style='text-align: center'>" + data.id_dispositivo[i] + "</td>" +
+              "<td style='text-align: center;'>" + data.etiqueta[i] + "</td>" +
+              "<td style='text-align:center; vertical-align:middle; width: 100px !important;'><input type='button' class='btn btn-danger btn-sm btn-borrar pl-3' value='Borrar'/></td>" +
+              "</tr>";
+            var btn = document.createElement("TR");
+            btn.innerHTML = fila;
+            document.getElementById("tabla").appendChild(btn);
+          }
+          window.estados_tabla = [];
+          $('#tabla').pageMe({
+            pagerSelector: '#myPager',
+            showPrevNext: true,
+            hidePageNumbers: false,
+            perPage: 10
+          });
+          Buscador();
+        }
+      });
+
+      socket.on('Agregar-Historial', function (data) {
+        if (data) {
+          var fila = "<tr>" +
+            "<td style='display: none;'>" + data.id + "</td>" +
+            "<td style='text-align: center;'>" + data.fecha + "</td>" +
+            "<td style='text-align: center'>" + data.id_dispositivo + "</td>" +
+            "<td style='text-align: center;'>" + data.etiqueta + "</td>" +
+            "<td style='text-align: center;'>" + "</td>" +
+            "<td style='text-align:center; vertical-align:middle; width: 100px !important;'><input type='button' class='btn btn-danger btn-sm btn-borrar pl-3' value='Borrar'/></td>" +
+            "</tr>";
+          var btn = document.createElement("TR");
+          btn.innerHTML = fila;
+          document.getElementById("tabla").appendChild(btn);
+        }
+      });
+
+      $("#btn-cerrar-sesion").click(function () {
+        $.post("/cerrar-sesion", function (res) {
+          console.log(res)
+          if (res == "ok")
+            window.location.href = "/";
+        });
+      });
+
+      $(document).on('click', '.btn-borrar', function (event) {
+        event.preventDefault();
+        var item = $(this).closest('tr')
+
+        $.confirm({
+          title: 'Confimar',
+          content: "¿Estas seguro de borrar de la base de datos?",
+          buttons: {
+            Si: function () {
+              var id;
+              $tds = item.find("td:nth-child(1)");
+              $.each($tds, function () {
+                id = $(this).text();
+              });
+              console.log("Eliminar:", id)
+              $.post("/eliminar-registro", { id }, function (res) {
+                console.log(res)
+                respuesta = res;
+                if (respuesta == "Eliminado") {
+                  $.alert('' +
+                    '<label>Registro eliminado exitosamente</label>' +
+                    '<div class="text-center">' +
+                    '<i class="fas fa-check fa-4x"></i>' +
+                    '</div>');
+                  item.remove();
+                }
+                if (respuesta == "Error") {
+                  $.alert('' +
+                    '<label>Error al eliminar</label>' +
+                    '<div class="text-center">' +
+                    '<i class="fas fa-times fa-4x"></i>' +
+                    '</div>');
+                }
+              }).done(function () {
+                
+              });
+            },
+            No: function () { },
+          }
+        });
+      });
+
+    </script>
+
+    <!-- Paginacion para las tablas -->
+    <script src="js/pager-table.js"></script>
+
+</body>
+
+</html>
