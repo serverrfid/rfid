@@ -117,25 +117,14 @@ client.on('message', (topic, message) => {
         if (json_dato) {
             // Escribir
             if (topic == suscripcion_topic_escribir) {
-                console.log(message)
+                console.log(aux_dato)
                 var id_dispositivo = json_dato.id_dispositivo;
                 var etiqueta = json_dato.etiqueta;
                 var historial = new Historial({
                     fecha: new Date(),
                     id_dispositivo,
                     etiqueta
-                }).save(function (err, result) {
-                    if (err) {
-                        return false;
-                    }
-                    var id_registro = result._id;
-                    io.sockets.emit('Agregar_Historial', {
-                        id: id_registro,
-                        fecha: new Date(),
-                        id_dispositivo,
-                        etiqueta
-                    });
-                });
+                }).save();
             }
         }
     } catch {
